@@ -6,6 +6,12 @@ Made by intern: @bassemfarid, no one or nothing else. 🤖
 
 import pygame
 
+def display_score():
+    current_time = pygame.time.get_ticks()
+    score_surf = game_font.render(f"{current_time}", False, (64, 64, 64))
+    score_rect = score_surf.get_rect(center = (400, 50))
+    screen.blit(score_surf, score_rect)
+
 # Initialize Pygame and create a window
 pygame.init()
 screen = pygame.display.set_mode((800, 400))
@@ -22,8 +28,6 @@ players_gravity_speed = 0  # The current speed at which the player falls
 SKY_SURF = pygame.image.load("graphics/level/sky.png").convert()
 GROUND_SURF = pygame.image.load("graphics/level/ground.png").convert()
 game_font = pygame.font.Font(pygame.font.get_default_font(), 50)
-score_surf = game_font.render("SCORE?", False, "Black")
-score_rect = score_surf.get_rect(center=(400, 50))
 
 # Load sprite assets
 player_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
@@ -62,6 +66,7 @@ while running:
         pygame.draw.rect(screen, "#c0e8ec", score_rect)
         pygame.draw.rect(screen, "#c0e8ec", score_rect, 10)
         screen.blit(score_surf, score_rect)
+        display_score()
 
         # Adjust egg's horizontal location then blit it
         egg_rect.x -= 5
