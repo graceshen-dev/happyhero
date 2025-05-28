@@ -14,6 +14,17 @@ def display_score():
     screen.blit(score_surf, score_rect)
     return current_time
 
+def enemy_movement(enemy_list):
+    if enemy_list:
+        for enemy_rect in enemy_list:
+            enemy_rect.x -= 5
+
+            screen.blit(egg_surf, enemy_rect)
+
+        return enemy_list
+    else: 
+        return []
+
 # Initialize Pygame and create a window
 pygame.init()
 start_time = 0
@@ -79,7 +90,7 @@ while running:
                 egg_rect.left = 800
         
         if event.type == obs_timer and is_playing:
-            enemy_rect_list.append(egg_surf.get_rect(bottomleft=(800, GROUND_Y)))
+            enemy_rect_list.append(egg_surf.get_rect(bottomleft=(800, GROUND_Y))) #radint?
 
     if is_playing:
         screen.fill("purple")  # Wipe the screen
@@ -104,6 +115,8 @@ while running:
         if player_rect.bottom > GROUND_Y:
             player_rect.bottom = GROUND_Y
         screen.blit(player_surf, player_rect)
+
+        enemy_rect_list = enemy_movement(enemy_rect_list)
 
         # When player collides with enemy, game ends
         if egg_rect.colliderect(player_rect):
