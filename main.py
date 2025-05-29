@@ -32,6 +32,14 @@ def enemy_movement(enemy_list):
     else: 
         return []
 
+def collision(player, enemies):
+    if enemies:
+        for enemy_rect in enemies:
+            if player.colliderect(enemy_rect):
+                return False
+    return True
+                 
+
 # Initialize Pygame and create a window
 pygame.init()
 start_time = 0
@@ -53,8 +61,15 @@ GROUND_SURF = pygame.image.load("graphics/level/ground.png").convert()
 game_font = pygame.font.Font(pygame.font.get_default_font(), 50)
 
 # Load sprite assets
-player_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+player_walk_1 = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+player_walk_2 = pygame.image.load("graphics/player/player_walk_2.png").convert_alpha()
+player_walk = [player_walk_1, player_walk_2]
+player_index = 0
+player_jump = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+
+player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
+
 egg_surf = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
 
@@ -96,7 +111,7 @@ while running:
             # When player wants to play again by pressing SPACE
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
-                egg_rect.left = 800
+                egg_rect.left = 800 #do i still need this
         
         if event.type == obs_timer and is_playing:
             if random.randint(0, 2):
@@ -115,12 +130,6 @@ while running:
         #screen.blit(score_surf, score_rect)
         score = display_score()
 
-        # Adjust egg's horizontal location then blit it
-        '''egg_rect.x -= 5
-        if egg_rect.right <= 0:
-            egg_rect.left = 800
-        screen.blit(egg_surf, egg_rect)'''
-
         # Adjust player's vertical location then blit it
         players_gravity_speed += 1
         player_rect.y += players_gravity_speed
@@ -131,20 +140,20 @@ while running:
         enemy_rect_list = enemy_movement(enemy_rect_list)
 
         # When player collides with enemy, game ends
-        if egg_rect.colliderect(player_rect):
-            is_playing = False
-
-        
+        is_playing = collision(player_rect, enemy_rect_list)
 
     # When game is over, display game over message
     else:
         screen.fill((94, 129, 162))
         start_time = int(pygame.time.get_ticks()/1000)
         screen.blit(starting_icon, starting_icon_rect)
+        enemy_rect_list.clear()
+        player_rect.midbottom = (80, 300)
+        players_gravity_speed = 0
 
         score_message = game_font.render(f"Your score: {score}", False, (111, 196, 169))
         score_message_rect = score_message.get_rect(center = (400, 350))
-        screen.blit(game_font, game_name_rect)
+        screen.blit(game_message, game_name_rect)
 
         if score == 0:
             screen.blit(game_message, game_message_rect)
