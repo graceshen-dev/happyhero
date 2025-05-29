@@ -39,6 +39,19 @@ def collision(player, enemies):
                 return False
     return True
                  
+def player_animation():
+    global player_surf, player_index
+
+    if player_rect.bottom < 300:
+        #jump
+        player_surf = player_jump
+    else:
+        player_index += 0.1
+        if player_index >= len(player_walk):
+            player_index = 0
+        player_surf = player_walk[int(player_index)]
+
+
 
 # Initialize Pygame and create a window
 pygame.init()
@@ -65,19 +78,27 @@ player_walk_1 = pygame.image.load("graphics/player/player_walk_1.png").convert_a
 player_walk_2 = pygame.image.load("graphics/player/player_walk_2.png").convert_alpha()
 player_walk = [player_walk_1, player_walk_2]
 player_index = 0
-player_jump = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha()
 
 player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
-egg_surf = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
+egg_frame_1 = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
+egg_frame_2 = pygame.image.load("graphics/egg/egg_2.png").convert_alpha()
+egg_frames = [egg_frame_1, egg_frame_2]
+egg_frame_index = 0
+egg_surf = egg_frames[egg_frame_index]
 egg_rect = egg_surf.get_rect(bottomleft=(800, GROUND_Y))
 
 starting_icon = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
 starting_icon = pygame.transform.rotozoom(starting_icon, 0, 2)
 starting_icon_rect = starting_icon.get_rect(center=(400, 200))
 
-fly_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+fly_frame1 = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+fly_frame2= pygame.image.load("graphics/player/player_walk_2.png").convert_alpha()
+fly_frames = [fly_frame1, fly_frame2]
+fly_frame_index = 0
+fly_surf = fly_frames[fly_frame_index]
 
 #text
 game_name = game_font.render("MY GAMEEEE", False, (11, 196, 169))
@@ -91,6 +112,12 @@ enemy_rect_list = []
 #timer
 obs_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obs_timer, 1500)
+
+egg_animation_timer = pygame.USEREVENT + 2
+pygame.time.set_timer(obs_timer, 500)
+
+fly_animation_timer = pygame.USEREVENT + 3
+pygame.time.set_timer(obs_timer, 200)
 
 while running:
     # Poll for events
@@ -132,6 +159,7 @@ while running:
 
         # Adjust player's vertical location then blit it
         players_gravity_speed += 1
+        player_animation()
         player_rect.y += players_gravity_speed
         if player_rect.bottom > GROUND_Y:
             player_rect.bottom = GROUND_Y
