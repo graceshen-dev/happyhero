@@ -19,7 +19,14 @@ def enemy_movement(enemy_list):
         for enemy_rect in enemy_list:
             enemy_rect.x -= 5
 
-            screen.blit(egg_surf, enemy_rect)
+            if enemy_rect.bottom == GROUND_Y:
+                screen.blit(egg_surf, enemy_rect)
+            else:
+                screen.blit(fly_surf, enemy_rect)
+
+        enemy_list = [enemy for enemy in enemy_list if enemy.x > -100]
+
+            
 
         return enemy_list
     else: 
@@ -55,6 +62,8 @@ starting_icon = pygame.image.load("graphics/player/player_walk_1.png").convert_a
 starting_icon = pygame.transform.rotozoom(starting_icon, 0, 2)
 starting_icon_rect = starting_icon.get_rect(center=(400, 200))
 
+fly_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+
 #text
 game_name = game_font.render("MY GAMEEEE", False, (11, 196, 169))
 game_name_rect = game_name.get_rect(center = (400, 80))
@@ -66,7 +75,7 @@ enemy_rect_list = []
 
 #timer
 obs_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(obs_timer, 900)
+pygame.time.set_timer(obs_timer, 1500)
 
 while running:
     # Poll for events
@@ -90,7 +99,10 @@ while running:
                 egg_rect.left = 800
         
         if event.type == obs_timer and is_playing:
-            enemy_rect_list.append(egg_surf.get_rect(bottomleft=(800, GROUND_Y))) #radint?
+            if random.randint(0, 2):
+                enemy_rect_list.append(egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y))) #radint?
+            else:
+                enemy_rect_list.append(fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210))) #210 is higher above
 
     if is_playing:
         screen.fill("purple")  # Wipe the screen
