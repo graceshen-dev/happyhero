@@ -83,6 +83,8 @@ player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha
 player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
+#player_jump_sound = pygame.mixer.Sound('')
+
 egg_frame_1 = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_frame_2 = pygame.image.load("graphics/egg/egg_2.png").convert_alpha()
 egg_frames = [egg_frame_1, egg_frame_2]
@@ -114,10 +116,10 @@ obs_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obs_timer, 1500)
 
 egg_animation_timer = pygame.USEREVENT + 2
-pygame.time.set_timer(obs_timer, 500)
+pygame.time.set_timer(egg_animation_timer, 500)
 
 fly_animation_timer = pygame.USEREVENT + 3
-pygame.time.set_timer(obs_timer, 200)
+pygame.time.set_timer(fly_animation_timer, 200)
 
 while running:
     # Poll for events
@@ -134,17 +136,34 @@ while running:
                 or event.type == pygame.MOUSEBUTTONDOWN
             ) and player_rect.bottom >= GROUND_Y:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
+                #player_jump_sound.play()
         else:
             # When player wants to play again by pressing SPACE
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
                 egg_rect.left = 800 #do i still need this
         
-        if event.type == obs_timer and is_playing:
-            if random.randint(0, 2):
-                enemy_rect_list.append(egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y))) #radint?
-            else:
-                enemy_rect_list.append(fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210))) #210 is higher above
+        if is_playing:
+            if event.type == obs_timer:
+                if random.randint(0, 2):
+                    enemy_rect_list.append(egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y))) #radint?
+                else:
+                    enemy_rect_list.append(fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210))) #210 is higher above
+
+            if event.type == egg_animation_timer:
+                if egg_frame_index == 0:
+                    egg_frame_index = 1
+                else:
+                    egg_frame_index = 0
+                egg_surf = egg_frames[egg_frame_index]
+
+            if event.type == fly_animation_timer:
+                if fly_frame_index == 0:
+                    fly_frame_index = 1
+                else:
+                    fly_frame_index = 0
+                fly_surf = fly_frames[fly_frame_index]
+
 
     if is_playing:
         screen.fill("purple")  # Wipe the screen
