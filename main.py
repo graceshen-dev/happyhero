@@ -1,7 +1,9 @@
 """Dino Game in Python
 
 A game similar to the famous Chrome Dino Game, built using pygame-ce.
-Made by intern: @bassemfarid, no one or nothing else. 🤖
+Made by intern: @bassemfarid and Grace Shen 🤖
+
+4c81685445dbe22bc2c71dd8d70097e199ed2554
 """
 
 import pygame
@@ -25,9 +27,6 @@ def enemy_movement(enemy_list):
                 screen.blit(fly_surf, enemy_rect)
 
         enemy_list = [enemy for enemy in enemy_list if enemy.x > -100]
-
-            
-
         return enemy_list
     else: 
         return []
@@ -51,8 +50,6 @@ def player_animation():
             player_index = 0
         player_surf = player_walk[int(player_index)]
 
-
-
 # Initialize Pygame and create a window
 pygame.init()
 start_time = 0
@@ -62,7 +59,7 @@ running = True  # Pygame main loop, kills pygame when False
 score = 0
 
 # Game state variables
-is_playing = True  # Whether in game or in menu
+is_playing = False  # Whether in game or in menu
 GROUND_Y = 300  # The Y-coordinate of the ground level
 JUMP_GRAVITY_START_SPEED = -20  # The speed at which the player jumps
 players_gravity_speed = 0  # The current speed at which the player falls
@@ -79,12 +76,10 @@ player_walk_2 = pygame.image.load("graphics/player/player_walk_2.png").convert_a
 player_walk = [player_walk_1, player_walk_2]
 player_index = 0
 player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha()
-
 player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
 #player_jump_sound = pygame.mixer.Sound('')
-
 egg_frame_1 = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_frame_2 = pygame.image.load("graphics/egg/egg_2.png").convert_alpha()
 egg_frames = [egg_frame_1, egg_frame_2]
@@ -102,6 +97,13 @@ fly_frames = [fly_frame1, fly_frame2]
 fly_frame_index = 0
 fly_surf = fly_frames[fly_frame_index]
 
+power_up1 = pygame.image.load("")
+
+shooter_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+shooters = []
+
+enemy_rect_list = []
+
 #text
 game_name = game_font.render("MY GAMEEEE", False, (11, 196, 169))
 game_name_rect = game_name.get_rect(center = (400, 80))
@@ -109,7 +111,8 @@ game_name_rect = game_name.get_rect(center = (400, 80))
 game_message = game_font.render("Press space to go", False, (11, 196, 169))
 game_message_rect = game_message.get_rect(center = (400, 350))
 
-enemy_rect_list = []
+
+
 
 #timer
 obs_timer = pygame.USEREVENT + 1
@@ -137,6 +140,12 @@ while running:
             ) and player_rect.bottom >= GROUND_Y:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
                 #player_jump_sound.play()
+        
+            if (event.type == pygame.KEYDOWN and event.key == pygame.K_f):
+                    #shoot stuff
+                    shooter_rect = shooter_surf.get_rect(midleft=(player_rect.right, player_rect.centery))
+                    shooters.append(shooter_rect)
+
         else:
             # When player wants to play again by pressing SPACE
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
@@ -144,9 +153,10 @@ while running:
                 egg_rect.left = 800 #do i still need this
         
         if is_playing:
+
             if event.type == obs_timer:
                 if random.randint(0, 2):
-                    enemy_rect_list.append(egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y))) #radint?
+                    enemy_rect_list.append(egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)))
                 else:
                     enemy_rect_list.append(fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210))) #210 is higher above
 
@@ -163,7 +173,7 @@ while running:
                 else:
                     fly_frame_index = 0
                 fly_surf = fly_frames[fly_frame_index]
-
+        
 
     if is_playing:
         screen.fill("purple")  # Wipe the screen
@@ -171,9 +181,6 @@ while running:
         # Blit the level assets
         screen.blit(SKY_SURF, (0, 0))
         screen.blit(GROUND_SURF, (0, GROUND_Y))
-        #pygame.draw.rect(screen, "#c0e8ec", score_rect)
-        #pygame.draw.rect(screen, "#c0e8ec", score_rect, 10)
-        #screen.blit(score_surf, score_rect)
         score = display_score()
 
         # Adjust player's vertical location then blit it
@@ -183,14 +190,31 @@ while running:
         if player_rect.bottom > GROUND_Y:
             player_rect.bottom = GROUND_Y
         screen.blit(player_surf, player_rect)
+        
 
         enemy_rect_list = enemy_movement(enemy_rect_list)
 
         # When player collides with enemy, game ends
         is_playing = collision(player_rect, enemy_rect_list)
+    
+        #shooting
+        for shot in shooters[:]:
+            shot.x += 10
+            screen.blit(shooter_surf, shot)
 
-    # When game is over, display game over message
+            if not collision(shot, enemy_rect_list):
+                print('yo')
+                for enemy_rect in enemy_rect_list:
+                    if shot.colliderect(enemy_rect):
+                        enemy_rect.y = 0
+                        #screen.blit(enemy_rect)
+                        print('yo')
+                
+            if shot.x > 800:
+                shooters.remove(shot)
+
     else:
+        # When game is over, display game over message
         screen.fill((94, 129, 162))
         start_time = int(pygame.time.get_ticks()/1000)
         screen.blit(starting_icon, starting_icon_rect)
@@ -200,7 +224,7 @@ while running:
 
         score_message = game_font.render(f"Your score: {score}", False, (111, 196, 169))
         score_message_rect = score_message.get_rect(center = (400, 350))
-        screen.blit(game_message, game_name_rect)
+        screen.blit(game_name, game_name_rect)
 
         if score == 0:
             screen.blit(game_message, game_message_rect)
