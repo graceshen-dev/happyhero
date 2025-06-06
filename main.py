@@ -18,23 +18,39 @@ def display_score():
 
 def enemy_movement(enemy_list):
     if enemy_list:
-        for enemy_rect in enemy_list:
-            enemy_rect.x -= 5
+        for enemy_tup in enemy_list: #change name, not a tup
+            enemy_tup[0].x -= 5
 
-            if enemy_rect.bottom == GROUND_Y:
-                screen.blit(egg_surf, enemy_rect)
+            if enemy_tup[0].bottom == GROUND_Y:
+                screen.blit(egg_surf, enemy_tup[0])
+            elif enemy_tup[0].bottom == 275:
+                if len(enemy_tup) > 1:
+                    if enemy_tup[1] == 30:
+                        screen.blit(wall_surf1, enemy_tup[0])
+                    elif enemy_tup[1] == 20:
+                        screen.blit(wall_surf2, enemy_tup[0])
+                    else:
+                        screen.blit(wall_surf3, enemy_tup[0])
+
             else:
-                screen.blit(fly_surf, enemy_rect)
+                screen.blit(fly_surf, enemy_tup[0])
 
-        enemy_list = [enemy for enemy in enemy_list if enemy.x > -100]
-        return enemy_list
+        temp_enemy_list = []
+        for enemy_tup in enemy_list:
+            if enemy_tup[0].x > -100:
+
+                if len(enemy_tup) > 1:
+                    temp_enemy_list.append([enemy_tup[0], enemy_tup[1]])
+                else:
+                    temp_enemy_list.append([enemy_tup[0]])
+        return temp_enemy_list
     else: 
         return []
 
 def collision(player, enemies):
     if enemies:
         for enemy_rect in enemies:
-            if player.colliderect(enemy_rect):
+            if player.colliderect(enemy_rect[0]):
                 return False
     return True
                  
@@ -58,6 +74,8 @@ clock = pygame.time.Clock()
 running = True  # Pygame main loop, kills pygame when False
 score = 0
 
+collision1 = False
+
 # Game state variables
 is_playing = False  # Whether in game or in menu
 GROUND_Y = 300  # The Y-coordinate of the ground level
@@ -79,6 +97,7 @@ player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha
 player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
+#sound liscence: https://pixabay.com/service/license-summary/
 #player_jump_sound = pygame.mixer.Sound('')
 egg_frame_1 = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_frame_2 = pygame.image.load("graphics/egg/egg_2.png").convert_alpha()
@@ -97,12 +116,15 @@ fly_frames = [fly_frame1, fly_frame2]
 fly_frame_index = 0
 fly_surf = fly_frames[fly_frame_index]
 
-power_up1 = pygame.image.load("")
+wall_surf1 = pygame.image.load("graphics/wall/wall1.png").convert_alpha()
+wall_surf2 = pygame.image.load("graphics/wall/wall2.png").convert_alpha()
+wall_surf3 = pygame.image.load("graphics/wall/wall3.png").convert_alpha()
 
 shooter_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
 shooters = []
 
 enemy_rect_list = []
+
 
 #text
 game_name = game_font.render("MY GAMEEEE", False, (11, 196, 169))
@@ -145,6 +167,7 @@ while running:
                     #shoot stuff
                     shooter_rect = shooter_surf.get_rect(midleft=(player_rect.right, player_rect.centery))
                     shooters.append(shooter_rect)
+                    #Hp
 
         else:
             # When player wants to play again by pressing SPACE
@@ -155,10 +178,13 @@ while running:
         if is_playing:
 
             if event.type == obs_timer:
-                if random.randint(0, 2):
-                    enemy_rect_list.append(egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)))
-                else:
-                    enemy_rect_list.append(fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210))) #210 is higher above
+                enemy_choice = random.randint(0, 3)
+                if enemy_choice == 0:
+                    enemy_rect_list.append([egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y))])
+                elif enemy_choice == 1:
+                    enemy_rect_list.append([fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210))]) #210 is higher above
+                elif enemy_choice == 2:
+                    enemy_rect_list.append([wall_surf1.get_rect(bottomleft=(random.randint(900, 1200), 275)), 30]) #idk if this inneficient
 
             if event.type == egg_animation_timer:
                 if egg_frame_index == 0:
@@ -202,14 +228,29 @@ while running:
             shot.x += 10
             screen.blit(shooter_surf, shot)
 
-            if not collision(shot, enemy_rect_list):
-                print('yo')
+            if not collision(shot, enemy_rect_list): #if it collides
                 for enemy_rect in enemy_rect_list:
-                    if shot.colliderect(enemy_rect):
-                        enemy_rect.y = 0
-                        #screen.blit(enemy_rect)
-                        print('yo')
-                
+                    if shot.colliderect(enemy_rect[0]):
+                        print("true")
+                        #enemy_rect[0].y = 0
+                        if len(enemy_rect) > 1 and collision1 == False:
+                            enemy_rect[1] -= 10
+                            print(enemy_rect[1])
+                            collision1 = True
+                            shooters.remove(shooters[shooters.index(shot)])
+
+                            if enemy_rect[1] == 0:
+                                enemy_rect_list.remove(enemy_rect)
+                                print('yo')
+
+                            break
+                            
+            else:
+                collision1 = False
+                print('false')
+
+                            
+                    
             if shot.x > 800:
                 shooters.remove(shot)
 
