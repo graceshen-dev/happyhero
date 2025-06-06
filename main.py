@@ -9,6 +9,8 @@ Made by intern: @bassemfarid and Grace Shen 🤖
 import pygame
 import random #do i need to just import randint
 
+#levels, hearts,
+
 def display_score():
     current_time = int(pygame.time.get_ticks()/1000) - start_time
     score_surf = game_font.render(f"Score: {current_time}", False, (64, 64, 64))
@@ -98,7 +100,7 @@ player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
 #sound liscence: https://pixabay.com/service/license-summary/
-#player_jump_sound = pygame.mixer.Sound('')
+hitting_wall_sound = pygame.mixer.Sound('sounds/hitting_wall.mp3')
 egg_frame_1 = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_frame_2 = pygame.image.load("graphics/egg/egg_2.png").convert_alpha()
 egg_frames = [egg_frame_1, egg_frame_2]
@@ -135,7 +137,6 @@ game_message_rect = game_message.get_rect(center = (400, 350))
 
 
 
-
 #timer
 obs_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obs_timer, 1500)
@@ -161,7 +162,7 @@ while running:
                 or event.type == pygame.MOUSEBUTTONDOWN
             ) and player_rect.bottom >= GROUND_Y:
                 players_gravity_speed = JUMP_GRAVITY_START_SPEED
-                #player_jump_sound.play()
+                
         
             if (event.type == pygame.KEYDOWN and event.key == pygame.K_f):
                     #shoot stuff
@@ -231,25 +232,20 @@ while running:
             if not collision(shot, enemy_rect_list): #if it collides
                 for enemy_rect in enemy_rect_list:
                     if shot.colliderect(enemy_rect[0]):
-                        print("true")
                         #enemy_rect[0].y = 0
+                        shooters.remove(shooters[shooters.index(shot)])
                         if len(enemy_rect) > 1 and collision1 == False:
                             enemy_rect[1] -= 10
-                            print(enemy_rect[1])
                             collision1 = True
-                            shooters.remove(shooters[shooters.index(shot)])
+                            hitting_wall_sound.play()
 
                             if enemy_rect[1] == 0:
                                 enemy_rect_list.remove(enemy_rect)
-                                print('yo')
-
                             break
                             
             else:
                 collision1 = False
                 print('false')
-
-                            
                     
             if shot.x > 800:
                 shooters.remove(shot)
