@@ -9,7 +9,7 @@ Made by intern: @bassemfarid and Grace Shen 🤖
 import pygame
 import random #do i need to just import randint
 
-#levels, hearts,
+#levels, hearts, only certaina mount of bullets and you pick them up
 
 def display_score():
     current_time = int(pygame.time.get_ticks()/1000) - start_time
@@ -23,17 +23,17 @@ def enemy_movement(enemy_list):
         for enemy_tup in enemy_list: #change name, not a tup
             enemy_tup[0].x -= 5
 
-            if enemy_tup[0].bottom == GROUND_Y:
+            if enemy_tup[1] == "egg":
                 screen.blit(egg_surf, enemy_tup[0])
-            elif enemy_tup[0].bottom == 275:
-                if len(enemy_tup) > 1:
-                    if enemy_tup[1] == 30:
-                        screen.blit(wall_surf1, enemy_tup[0])
-                    elif enemy_tup[1] == 20:
-                        screen.blit(wall_surf2, enemy_tup[0])
-                    else:
-                        screen.blit(wall_surf3, enemy_tup[0])
-
+            elif enemy_tup[1] == "wall":
+                if enemy_tup[2] == 30:
+                    screen.blit(wall_surf1, enemy_tup[0])
+                elif enemy_tup[2] == 20:
+                    screen.blit(wall_surf2, enemy_tup[0])
+                else:
+                    screen.blit(wall_surf3, enemy_tup[0])
+            elif enemy_tup[1] == "bullet": #NOT AN ENEMY BTW
+                screen.blit(bullet_surf, enemy_tup[0])
             else:
                 screen.blit(fly_surf, enemy_tup[0])
 
@@ -41,10 +41,10 @@ def enemy_movement(enemy_list):
         for enemy_tup in enemy_list:
             if enemy_tup[0].x > -100:
 
-                if len(enemy_tup) > 1:
-                    temp_enemy_list.append([enemy_tup[0], enemy_tup[1]])
+                if len(enemy_tup) > 2:
+                    temp_enemy_list.append([enemy_tup[0], enemy_tup[1], enemy_tup[2]])
                 else:
-                    temp_enemy_list.append([enemy_tup[0]])
+                    temp_enemy_list.append([enemy_tup[0], enemy_tup[1]])
         return temp_enemy_list
     else: 
         return []
@@ -53,8 +53,8 @@ def collision(player, enemies):
     if enemies:
         for enemy_rect in enemies:
             if player.colliderect(enemy_rect[0]):
-                return False
-    return True
+                return True
+    return False
                  
 def player_animation():
     global player_surf, player_index
@@ -75,8 +75,9 @@ screen = pygame.display.set_mode((800, 400))
 clock = pygame.time.Clock()
 running = True  # Pygame main loop, kills pygame when False
 score = 0
-
-collision1 = False
+num_of_bullets = 10 #tehcnically not needed u can just do it in else of is-plahibg
+collision1 = False #change name
+pickup_inventory_list = []
 
 # Game state variables
 is_playing = False  # Whether in game or in menu
@@ -122,7 +123,8 @@ wall_surf1 = pygame.image.load("graphics/wall/wall1.png").convert_alpha()
 wall_surf2 = pygame.image.load("graphics/wall/wall2.png").convert_alpha()
 wall_surf3 = pygame.image.load("graphics/wall/wall3.png").convert_alpha()
 
-shooter_surf = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+bullet_surf = pygame.image.load("graphics/pickups/bullet.png").convert_alpha()
+
 shooters = []
 
 enemy_rect_list = []
@@ -166,8 +168,11 @@ while running:
         
             if (event.type == pygame.KEYDOWN and event.key == pygame.K_f):
                     #shoot stuff
-                    shooter_rect = shooter_surf.get_rect(midleft=(player_rect.right, player_rect.centery))
-                    shooters.append(shooter_rect)
+
+                    if num_of_bullets > 0:
+                        num_of_bullets -= 1 
+                        shooter_rect = bullet_surf.get_rect(midleft=(player_rect.right, player_rect.centery))
+                        shooters.append(shooter_rect)
                     #Hp
 
         else:
@@ -179,13 +184,16 @@ while running:
         if is_playing:
 
             if event.type == obs_timer:
-                enemy_choice = random.randint(0, 3)
-                if enemy_choice == 0:
-                    enemy_rect_list.append([egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y))])
-                elif enemy_choice == 1:
-                    enemy_rect_list.append([fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210))]) #210 is higher above
-                elif enemy_choice == 2:
-                    enemy_rect_list.append([wall_surf1.get_rect(bottomleft=(random.randint(900, 1200), 275)), 30]) #idk if this inneficient
+                item_choice = random.randint(0, 3)
+                if item_choice == 0:
+                    enemy_rect_list.append([egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)), "egg"])
+                elif item_choice == 1:
+                    enemy_rect_list.append([fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210)), "fly"]) #210 is higher above
+                elif item_choice == 2:
+                    enemy_rect_list.append([wall_surf1.get_rect(bottomleft=(random.randint(900, 1200), 275)), "wall", 30]) #idk if this inneficient
+                elif item_choice == 3:
+                    pickup_inventory_list.append([bullet_surf.get_rect(bottomleft=(random.randint(900, 1200), 295)), "bullet"])
+                
 
             if event.type == egg_animation_timer:
                 if egg_frame_index == 0:
@@ -220,26 +228,37 @@ while running:
         
 
         enemy_rect_list = enemy_movement(enemy_rect_list)
+        pickup_inventory_list = enemy_movement(pickup_inventory_list)
 
         # When player collides with enemy, game ends
-        is_playing = collision(player_rect, enemy_rect_list)
+        is_playing = not collision(player_rect, enemy_rect_list)
+
+        if collision(player_rect, pickup_inventory_list):
+            for item in pickup_inventory_list:
+                    if player_rect.colliderect(item[0]) and item[1] == "bullet":
+                        num_of_bullets += 1
+                        pickup_inventory_list.remove(pickup_inventory_list[pickup_inventory_list.index(item)])
+        
+        inventory_surf = game_font.render(f"Bullets: {num_of_bullets}", False, (64, 64, 64))
+        inventory_rect = inventory_surf.get_rect(center = (100, 50))
+        screen.blit(inventory_surf, inventory_rect)
     
         #shooting
         for shot in shooters[:]:
             shot.x += 10
-            screen.blit(shooter_surf, shot)
+            screen.blit(bullet_surf, shot)
 
-            if not collision(shot, enemy_rect_list): #if it collides
+            if collision(shot, enemy_rect_list): #if it collides
                 for enemy_rect in enemy_rect_list:
                     if shot.colliderect(enemy_rect[0]):
                         #enemy_rect[0].y = 0
                         shooters.remove(shooters[shooters.index(shot)])
-                        if len(enemy_rect) > 1 and collision1 == False:
-                            enemy_rect[1] -= 10
+                        if len(enemy_rect) > 2 and collision1 == False:
+                            enemy_rect[2] -= 10
                             collision1 = True
                             hitting_wall_sound.play()
 
-                            if enemy_rect[1] == 0:
+                            if enemy_rect[2] == 0:
                                 enemy_rect_list.remove(enemy_rect)
                             break
                             
@@ -258,6 +277,7 @@ while running:
         enemy_rect_list.clear()
         player_rect.midbottom = (80, 300)
         players_gravity_speed = 0
+        num_of_bullets = 10 #reset num of bullets????
 
         score_message = game_font.render(f"Your score: {score}", False, (111, 196, 169))
         score_message_rect = score_message.get_rect(center = (400, 350))
