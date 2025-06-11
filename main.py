@@ -11,15 +11,56 @@ import random #do i need to just import randint
 
 #levels, hearts, only certaina mount of bullets and you pick them up
 #do you always need a return
+#increase score whenver you get a wall. increase difficulty when score is higher
 
-'''def draw_lives(screen, x, y, current, max_health):
-    width = 100
-    height = 10
-    fill = (current / max_health) * width
-    border = pygame.Rect(x, y, width, height)
-    fill_rect = pygame.Rect(x, y, fill, height)
-    pygame.draw.rect(screen, (255,0,0), fill_rect)
-    pygame.draw.rect(screen, (255,255,255), border, 2)'''
+#the happy game, pick up timbits, donuts, money, 
+
+def sunset_cycle():
+    #begins at night
+    return
+    
+
+
+def update_ground():
+    #make sit moving
+    global ground1_x_value, ground2_x_value
+
+    # Move both grounds to the left
+    ground1_x_value -= 5
+    ground2_x_value -= 5
+
+    # Wrap around when they go off screen
+    if ground1_x_value <= -800:
+        ground1_x_value = ground2_x_value + 800
+    if ground2_x_value <= -800:
+        ground2_x_value = ground1_x_value + 800
+
+def show_intro_screen():
+    #starting text
+    global game_name, game_name_rect
+    game_name = title_font.render("HAPPY HERO", False, (252, 244, 3))
+    game_name_rect = game_name.get_rect(center = (400, 50))
+
+    game_message = game_font.render("Press space to go", False, (11, 196, 169))
+    game_message_rect = game_message.get_rect(center = (400, 350))
+    screen.blit(game_message, game_message_rect)
+    title_text = game_font.render(f"Welcome, {user_name}!", True, (255, 255, 255))
+    instruction_text = game_font.render("Press SPACE to jump,\nF to shoot, avoid walls, collect donuts!", True, (255, 255, 255))
+    start_text = game_font.render("Press ENTER to start!", True, (255, 255, 0))
+
+    title_rect = title_text.get_rect(center=(400, 100))
+    instruction_rect = instruction_text.get_rect(center=(400, 200))
+    start_rect = start_text.get_rect(center=(400, 300))
+
+    screen.blit(intro_background_surf, (0, 0))  # Background color
+    screen.blit(title_text, title_rect)
+    screen.blit(instruction_text, instruction_rect)
+    screen.blit(start_text, start_rect)
+
+
+def draw_lives(life_surf, lives, x, y, spacing=40):
+    for life in range(lives):
+        screen.blit(life_surf, (x + life * spacing, y))
 
 
 def modify_leaderboard():
@@ -32,16 +73,24 @@ def modify_leaderboard():
         #        file.write(f"1st: username\n")
     return
 
+
 def increase_difficulty(increase_amount):
     obstacle_speed += increase_amount
     wall_health += increase_amount * 10
+    max_bullet_pickup_value += increase_amount
 
 
-def pickup_item(item_name, item_list, collected_items):
+def pickup_item(item_name, item_list, collected_items, sound):
     for item in item_list:
         if player_rect.colliderect(item[0]) and item[1] == item_name:
-            collected_items += 1
+            collected_items += item[2] #pickup value
             item_list.remove(item_list[item_list.index(item)])
+            sound.play()
+        
+            if item_name == "money":
+                global score
+                score += item[2] * 5
+    
     return collected_items
 
 def shoot(bullet_list, is_collision):
@@ -52,7 +101,6 @@ def shoot(bullet_list, is_collision):
             if collision(shot, enemy_rect_list): #if it collides
                 for enemy_rect in enemy_rect_list:
                     if shot.colliderect(enemy_rect[0]):
-                        #enemy_rect[0].y = 0
                         bullet_list.remove(bullet_list[bullet_list.index(shot)])
                         if len(enemy_rect) > 2 and is_collision == False:
                             enemy_rect[2] -= 10
@@ -61,27 +109,28 @@ def shoot(bullet_list, is_collision):
 
                             if enemy_rect[2] == 0:
                                 enemy_rect_list.remove(enemy_rect)
+                                happy_person_sound.play()
                             break
             else:
                 is_collision = False
-                print('false')
                     
             if shot.x > 800:
                 bullet_list.remove(shot)
 
 def display_inventory():
-    inventory_surf = game_font.render(f"Bullets: {num_of_bullets}\nLives: {num_of_lives}", False, (64, 64, 64))
+    inventory_surf = game_font.render(f"Bullets: {num_of_bullets}\nLives: ", False, (64, 64, 64))
     inventory_rect = inventory_surf.get_rect(center = (110, 50))
     screen.blit(inventory_surf, inventory_rect)
 
 
 def display_score():
-    ''' docstring '''
-    current_time = int(pygame.time.get_ticks()/1000) - start_time
-    score_surf = game_font.render(f"Score: {current_time}", False, (64, 64, 64))
+    ''' what does it do 
+    parameter and returns
+    
+    '''
+    score_surf = game_font.render(f"Happiness: {score}", False, (64, 64, 64))
     score_rect = score_surf.get_rect(center = (400, 50))
     screen.blit(score_surf, score_rect)
-    return current_time
 
 def obstacle_movement(obstacle_list):
     '''docstring'''
@@ -93,15 +142,24 @@ def obstacle_movement(obstacle_list):
                 screen.blit(egg_surf, obstacle[0])
             elif obstacle[1] == "wall":
                 if obstacle[2] == 30: #make this more dynamtic
-                    screen.blit(wall_surf1, obstacle[0])
+                    screen.blit(mad_businessman_surf1, obstacle[0])
                 elif obstacle[2] == 20:
-                    screen.blit(wall_surf2, obstacle[0])
+                    screen.blit(mad_businessman_surf2, obstacle[0])
                 else:
-                    screen.blit(wall_surf3, obstacle[0])
+                    screen.blit(mad_businessman_surf3, obstacle[0])
+            elif obstacle[1] == "depressed girl":
+                if obstacle[2] == 30:
+                    screen.blit(depressed_girl_surf1, obstacle[0])
+                elif obstacle[2] == 20:
+                    screen.blit(depressed_girl_surf2, obstacle[0])
+                else:
+                    screen.blit(depressed_girl_surf3, obstacle[0])
             elif obstacle[1] == "bullet":
                 screen.blit(ground_bullet_surf, obstacle[0])
             elif obstacle[1] == "life":
                 screen.blit(life_surf, obstacle[0])
+            elif obstacle[1] == "money":
+                screen.blit(money_surf, obstacle[0])
             else:
                 screen.blit(fly_surf, obstacle[0])
 
@@ -128,7 +186,7 @@ def player_animation():
     '''docstring'''
     global player_surf, player_index
 
-    if player_rect.bottom < 300:
+    if player_rect.bottom < GROUND_Y:
         #jump
         player_surf = player_jump
     else:
@@ -139,20 +197,24 @@ def player_animation():
 
 # Initialize Pygame and create a window
 pygame.init()
-#username = input("Yo what's your name/user? ")
-start_time = 0
+user_name = input("Yo! What's your name/user? ")
+
 screen = pygame.display.set_mode((800, 400))
 clock = pygame.time.Clock()
+
+# Game state variables
 running = True  # Pygame main loop, kills pygame when False
 score = 0
-num_of_bullets = 10 #tehcnically not needed u can just do it in else of is-plahibg
+num_of_bullets = 15 #tehcnically not needed u can just do it in else of is-plahibg
 num_of_lives = 3 #tehcnically not needed u can just do it in else of is-plahibg
+num_of_money = 0 #tehcnidalfkja
 bullet_wall_collision = False
 pickup_inventory_list = []
 obstacle_speed = 5
 wall_health = 30
-
-# Game state variables
+max_bullet_pickup_value = 1 #pickup value is how much the user will gain for picking them up
+life_pickup_value = 1
+money_pickup_value = 1
 is_playing = False  # Whether in game or in menu
 GROUND_Y = 300  # The Y-coordinate of the ground level
 JUMP_GRAVITY_START_SPEED = -20  # The speed at which the player jumps
@@ -161,20 +223,27 @@ players_gravity_speed = 0  # The current speed at which the player falls
 # Load level assets
 SKY_SURF = pygame.image.load("graphics/level/sky.png").convert()
 GROUND_SURF = pygame.image.load("graphics/level/ground.png").convert()
-# license: httpsL//
-game_font = pygame.font.Font(pygame.font.get_default_font(), 50)
+intro_background_surf = pygame.image.load("graphics/level/intro_background.png").convert_alpha()
+ground1_x_value = 0
+ground2_x_value = 800
+game_font = pygame.font.Font("fonts/game_font.ttf", 25) # license: https://openfontlicense.org
+title_font = pygame.font.Font("fonts/title_font.ttf", 60)
+instrction_font = pygame.font.Font("fonts/instruction_font.ttf", 20)
+
 
 # Load sprite assets
 player_walk_1 = pygame.image.load("graphics/player/player_walk_1.png").convert_alpha()
+player_walk_1 = pygame.transform.rotozoom(player_walk_1, 0, 0.8)
 player_walk_2 = pygame.image.load("graphics/player/player_walk_2.png").convert_alpha()
+player_walk_2 = pygame.transform.rotozoom(player_walk_2, 0, 0.8)
+player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha()
+player_jump = pygame.transform.rotozoom(player_jump, 0, 0.8)
 player_walk = [player_walk_1, player_walk_2]
 player_index = 0
-player_jump = pygame.image.load("graphics/player/player_jump.png").convert_alpha()
 player_surf = player_walk[player_index]
 player_rect = player_surf.get_rect(bottomleft=(25, GROUND_Y))
 
-#sound liscence: https://pixabay.com/service/license-summary/
-hitting_wall_sound = pygame.mixer.Sound('sounds/hitting_wall.mp3')
+
 egg_frame_1 = pygame.image.load("graphics/egg/egg_1.png").convert_alpha()
 egg_frame_2 = pygame.image.load("graphics/egg/egg_2.png").convert_alpha()
 egg_frames = [egg_frame_1, egg_frame_2]
@@ -192,31 +261,33 @@ fly_frames = [fly_frame1, fly_frame2]
 fly_frame_index = 0
 fly_surf = fly_frames[fly_frame_index]
 
-wall_surf1 = pygame.image.load("graphics/wall/wall1.png").convert_alpha()
-wall_surf2 = pygame.image.load("graphics/wall/wall2.png").convert_alpha()
-wall_surf3 = pygame.image.load("graphics/wall/wall3.png").convert_alpha()
+mad_businessman_surf1 = pygame.image.load("graphics/mad_businessman/mad_businessman1.png").convert_alpha()
+mad_businessman_surf2 = pygame.image.load("graphics/mad_businessman/mad_businessman2.png").convert_alpha()
+mad_businessman_surf3 = pygame.image.load("graphics/mad_businessman/mad_businessman3.png").convert_alpha()
+
+depressed_girl_surf1 = pygame.image.load("graphics/depressed_girl/depressed_girl1.png").convert_alpha()
+depressed_girl_surf1 = pygame.transform.rotozoom(depressed_girl_surf1, 0, 0.5)
+depressed_girl_surf2 = pygame.image.load("graphics/depressed_girl/depressed_girl2.png").convert_alpha()
+depressed_girl_surf2 = pygame.transform.rotozoom(depressed_girl_surf2, 0, 0.5)
+depressed_girl_surf3 = pygame.image.load("graphics/depressed_girl/depressed_girl3.png").convert_alpha()
+depressed_girl_surf3 = pygame.transform.rotozoom(depressed_girl_surf3, 0, 0.5)
 
 bullet_surf = pygame.image.load("graphics/pickups/bullet.png").convert_alpha()
-
 ground_bullet_surf = pygame.image.load("graphics/pickups/ground_bullet.png").convert_alpha()
-
 life_surf = pygame.image.load("graphics/pickups/life.png").convert_alpha()
+money_surf = pygame.image.load("graphics/pickups/money.png").convert_alpha()
+
+
+
+#sounds
+hitting_wall_sound = pygame.mixer.Sound('sounds/hitting_wall.mp3') #sound liscences: https://pixabay.com/service/license-summary/
+money_pickup_sound = pygame.mixer.Sound('sounds/money_pickup.mp3')
+life_pickup_sound = pygame.mixer.Sound('sounds/life_pickup.mp3')
+happy_bullet_pickup_sound = pygame.mixer.Sound('sounds/happy_bullet_pickup.mp3')
+happy_person_sound = pygame.mixer.Sound('sounds/happy_person.mp3')
 
 shooters = []
-
 enemy_rect_list = []
-
-health_surf = pygame.Surface((200, 100))
-
-
-#text
-game_name = game_font.render("MY GAMEEEE", False, (11, 196, 169))
-game_name_rect = game_name.get_rect(center = (400, 80))
-
-game_message = game_font.render("Press space to go", False, (11, 196, 169))
-game_message_rect = game_message.get_rect(center = (400, 350))
-
-
 
 #timer
 obs_timer = pygame.USEREVENT + 1
@@ -232,10 +303,10 @@ pickup_timer = pygame.USEREVENT + 4
 pygame.time.set_timer(pickup_timer, 1500)
 
 while running:
-    # Poll for events
+    # Poll for events (?)
     for event in pygame.event.get():
-        # pygame.QUIT --> user clicked X to close your window
-        if event.type == pygame.QUIT:
+    
+        if event.type == pygame.QUIT: # --> user clicked X to close your window
             running = False
 
         elif is_playing:
@@ -258,26 +329,30 @@ while running:
             # When player wants to play again by pressing SPACE
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 is_playing = True
-                egg_rect.left = 800 #do i still need this
+                #egg_rect.left = 800 #do i still need this
         
         if is_playing:
 
             if event.type == obs_timer:
-                enemy_choice = random.randint(0, 2)
-                if enemy_choice == 0:
+                enemy_choice = random.randint(0, 6)
+                if enemy_choice <= 2:
                     enemy_rect_list.append([egg_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)), "egg"])
-                elif enemy_choice == 1:
-                    enemy_rect_list.append([fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 210)), "fly"]) #210 is higher above
-                elif enemy_choice == 2:
-                    enemy_rect_list.append([wall_surf1.get_rect(bottomleft=(random.randint(900, 1200), 275)), "wall", wall_health]) #idk if this inneficient
+                elif enemy_choice <= 4:
+                    enemy_rect_list.append([fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 200)), "fly"]) #210 is higher above
+                elif enemy_choice == 5:
+                    enemy_rect_list.append([mad_businessman_surf1.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)), "wall", wall_health]) #idk if this inneficient
+                elif enemy_choice == 6:
+                    enemy_rect_list.append([depressed_girl_surf1.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)), "depressed girl", wall_health])
             
             if event.type == pickup_timer:
                 item_choice = random.randint(0, 10)
                 #add random item choice once u add more pickups
-                if item_choice > 2:
-                    pickup_inventory_list.append([ground_bullet_surf.get_rect(bottomleft=(random.randint(900, 1200), 295)), "bullet"])
+                if item_choice < 5:
+                    pickup_inventory_list.append([ground_bullet_surf.get_rect(bottomleft=(random.randint(900, 1200), 295)), "bullet", random.randint(1, max_bullet_pickup_value)])
+                elif item_choice == 10:
+                    pickup_inventory_list.append([life_surf.get_rect(bottomleft=(random.randint(900, 1200), 295)), "life", life_pickup_value])
                 else:
-                    pickup_inventory_list.append([life_surf.get_rect(bottomleft=(random.randint(900, 1200), 295)), "life"])
+                    pickup_inventory_list.append([life_surf.get_rect(bottomleft=(random.randint(900, 1200), 330)), "money", money_pickup_value])
 
             if event.type == egg_animation_timer:
                 if egg_frame_index == 0:
@@ -299,8 +374,11 @@ while running:
 
         # Blit the level assets
         screen.blit(SKY_SURF, (0, 0))
-        screen.blit(GROUND_SURF, (0, GROUND_Y))
-        score = display_score()
+        
+        update_ground()
+        screen.blit(GROUND_SURF, (ground2_x_value, GROUND_Y))
+        screen.blit(GROUND_SURF, (ground1_x_value, GROUND_Y))
+        display_score() #YO THIS DOESNT WORK 
 
         # Adjust player's vertical location then blit it
         players_gravity_speed += 1
@@ -313,53 +391,56 @@ while running:
         enemy_rect_list = obstacle_movement(enemy_rect_list)
         pickup_inventory_list = obstacle_movement(pickup_inventory_list)
 
-        # When player collides with enemy, game ends
 
+        display_inventory()
+        shoot(shooters, bullet_wall_collision)
+        draw_lives(life_surf, num_of_lives, 90, 25, 25)
 
+        # When player collides with enemy, lose a life
         if collision(player_rect, enemy_rect_list):
             for enemy in enemy_rect_list:
                 if player_rect.colliderect(enemy[0]):
                     num_of_lives -= 1
-                    print(num_of_lives)
+
                     enemy_rect_list.remove(enemy_rect_list[enemy_rect_list.index(enemy)])
 
         if num_of_lives == 0:
             is_playing = False
 
-        
-
 
         if collision(player_rect, pickup_inventory_list):
-            num_of_bullets = pickup_item("bullet", pickup_inventory_list, num_of_bullets)
-            num_of_lives = pickup_item("life", pickup_inventory_list, num_of_lives)
+            num_of_bullets = pickup_item("bullet", pickup_inventory_list, num_of_bullets, happy_bullet_pickup_sound)
+            num_of_lives = pickup_item("life", pickup_inventory_list, num_of_lives, life_pickup_sound)
+            num_of_money = pickup_item("money", pickup_inventory_list, num_of_money, money_pickup_sound)
 
-        display_inventory()
-        shoot(shooters, bullet_wall_collision)
-        #draw_health_bar(health_surf, 100, 100, num_of_lives, 3) #draw them on the walls too
+        #draw health bars on walls?
         
 
     else:
         # When game is over, display game over message
+        #put into function?
         screen.fill((94, 129, 162))
         start_time = int(pygame.time.get_ticks()/1000)
         screen.blit(starting_icon, starting_icon_rect)
-        enemy_rect_list.clear()
-
-        player_rect.midbottom = (80, 300)
-        players_gravity_speed = 0
-
-        shooters.clear()
-        num_of_bullets = 10 #reset num of bullets????
-        num_of_lives = 3
-
-        score_message = game_font.render(f"Your score: {score}", False, (111, 196, 169))
-        score_message_rect = score_message.get_rect(center = (400, 350))
-        screen.blit(game_name, game_name_rect)
 
         if score == 0:
-            screen.blit(game_message, game_message_rect)
+            show_intro_screen()
         else:
             screen.blit(score_message, score_message_rect)
+
+
+        player_rect.midbottom = (80, GROUND_Y)
+        players_gravity_speed = 0
+        enemy_rect_list.clear()
+        shooters.clear()
+        num_of_bullets = 15 #reset num of bullets????
+        num_of_lives = 3
+        num_of_money = 0
+        score = 0
+
+        score_message = game_font.render(f"Your happiness score: {score}", False, (111, 196, 169))
+        score_message_rect = score_message.get_rect(center = (400, 350))
+        screen.blit(game_name, game_name_rect)
 
     # flip the display to put your work on screen
     pygame.display.flip()
