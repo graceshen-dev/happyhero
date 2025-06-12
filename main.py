@@ -9,11 +9,6 @@ Made by intern: @bassemfarid and Grace Shen 🤖
 import pygame
 import random
 
-#variable names working on it rn
-#ad
-#comment
-#improve instructions
-
 def increase_difficulty(increase_amount):
     '''
     Increases the game difficulty by adjusting speed and health values.
@@ -460,9 +455,9 @@ while running:
                 if enemy_choice <= 2:
                     enemy_rect_list.append([job_application_surf.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)), "job application"])
                 elif enemy_choice <= 4:
-                    enemy_rect_list.append([fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 200)), "fly"]) #210 is higher above
+                    enemy_rect_list.append([fly_surf.get_rect(bottomleft=(random.randint(900, 1200), 200)), "fly"])
                 elif enemy_choice == 5:
-                    enemy_rect_list.append([mad_businessman_surf1.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)), "mad businessman", obstacle_health]) #idk if this inneficient
+                    enemy_rect_list.append([mad_businessman_surf1.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)), "mad businessman", obstacle_health])
                 elif enemy_choice == 6:
                     enemy_rect_list.append([depressed_girl_surf1.get_rect(bottomleft=(random.randint(900, 1200), GROUND_Y)), "depressed girl", obstacle_health])
             
